@@ -1,6 +1,3 @@
-## 📁 Project Structure
-
-```
 project-folder/
 ├── app.py                      # Flask backend
 ├── recipes.db                  # SQLite database
@@ -24,8 +21,6 @@ project-folder/
 ```
 
 ---
-
-## 🚀 Getting Started
 
 ### 1. Clone or Download the Repository
 
@@ -56,23 +51,8 @@ python app.py
 Visit: [http://localhost:5000](http://localhost:5000)
 
 
-
-## 🧠 Features
-- LocalStorage + SQLite hybrid
-- Dynamic recipe editing and preview
-- Profile with saved recipes
-- Responsive layout with filters and search
-- Image upload preview
-- Dynamic header/footer loading
-
 ---
 
-## 📦 Syncing Local to Server
-- Use the **"Sync to Server"** button on `recipes.html` to upload all `localStorage` recipes to the SQLite DB
-
----
-
-## ⚠️ Notes
+## Notes
 - Flask runs in development mode
 - All data is stored locally unless explicitly synced to the backend
-- You can wipe `recipes.db` to reset the backend
