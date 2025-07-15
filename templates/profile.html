@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>IRMS - My Profile</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../static/style.css" rel="stylesheet"/>
+<script defer="" src="../static/script.js"></script>
+</head>
+<body>
+<header>
+  <nav class="main-nav">
+    <div class="logo">
+      <a href="index.html"><img src="../static/images/logo.png" alt="KIK's Kitchen logo" style="width: 100px; height: auto;"></a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+    </ul>
+
+    <div class="nav-actions">
+    <div class="nav-actions" id="authArea">
+      <button class="login-btn" onclick="window.location.href='login.html'">LOGIN</button>
+    </div>
+    <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon"></a>
+    <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+    </div>
+
+    <div class="mobile-icons">
+      <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+      <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon-m"></a>
+      <button class="hamburger" onclick="openMobileMenu()">☰</button>
+    </div>
+  </nav>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <button class="close-mobile" onclick="closeMobileMenu()">&times;</button>
+    <ul>
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="add_edit_recipe.html">+ ADD A RECIPE</a></li>
+      <li><a href="profile.html">PROFILE</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="profile-page">
+<div class="profile-summary">
+  <img alt="Profile Photo" class="profile-photo" id="photoPreview" src="images/profileimg.jpg"/>
+  <h1 id="displayName">User</h1>
+  <br/>
+  <a class="button-lg" href="profile_saved.html">View Saved Recipes</a>
+</div>
+
+<section class="profile-edit-page">
+  <h3>Edit Photo &amp; Name</h3>
+  <form id="editProfileForm">
+    <label for="profilePhoto">Upload New Photo</label>
+    <input accept="image/*" id="profilePhoto" type="file"/>
+    <label for="profileName">Name</label>
+    <input id="profileName" type="text"/>
+    <button type="submit">Save Changes</button>
+  </form>
+</section>
+
+<section class="profile-settings-page">
+  <h3>Account Settings</h3>
+  <form id="accountSettingsForm">
+    <label for="email">Change Email</label>
+    <input id="email" type="email"/>
+    <label for="password">New Password</label>
+    <input id="password" type="password"/>
+    <label for="confirmPassword">Confirm New Password</label>
+    <input id="confirmPassword" type="password"/>
+    <button type="submit">Save Changes</button>
+  </form>
+</section>
+
+<section class="profile-email-prefs-page">
+<h3>Email Preferences</h3>
+  <form id="emailPrefsForm">
+    <label><input id="newsletter" type="checkbox"/> Receive weekly recipe newsletter</label><br/>
+    <label><input id="promos" type="checkbox"/> Receive promotional offers</label><br/>
+    <label><input id="updates" type="checkbox"/> Receive app update notifications</label><br/>
+    <button type="submit">Save Preferences</button>
+  </form>
+</section>
+</main>
+
+<footer>
+  <div class="footer-links">
+    <ul>
+      <li><a href="#">Links</a></li>
+      <li><a href="#">Learn & Support</a></li>
+      <li><a href="#">Download the App</a></li>
+    </ul>
+  </div>
+
+  <div class="newsletter">
+    <h4>Sign up for our Newsletter</h4>
+    <input type="email" placeholder="Enter your email" />
+    <button>Subscribe</button>
+  </div>
+
+  <p class="copyright">
+    &copy; 2024 KIK's Kitchen. All rights reserved.
+  </p>
+</footer>
+
+<script>
+const currentUser = localStorage.getItem("currentUser");
+const users = JSON.parse(localStorage.getItem("users") || "[]");
+const userIndex = users.findIndex(u => u.email === currentUser);
+if (!currentUser || userIndex === -1) {
+  alert("Please log in first.");
+  window.location.href = "login.html";
+}
+
+const user = users[userIndex];
+
+// Pre-fill profile details
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("authArea").innerHTML = `
+    <span>Hi, ${user.name || currentUser.split('@')[0]}</span>
+    <button onclick="logout()">Logout</button>
+  `;
+
+  document.getElementById("displayName").textContent = user.name || "User";
+  document.getElementById("profileName").value = user.name || "";
+  document.getElementById("email").value = user.email;
+
+  if (user.photo) {
+    document.getElementById("photoPreview").src = user.photo;
+  }
+
+  // Load preferences
+  document.getElementById("newsletter").checked = user.prefs?.newsletter || false;
+  document.getElementById("promos").checked = user.prefs?.promos || false;
+  document.getElementById("updates").checked = user.prefs?.updates || false;
+});
+
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.href = "login.html";
+}
+
+// Profile Name & Photo
+document.getElementById("editProfileForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = document.getElementById("profileName").value.trim();
+  const file = document.getElementById("profilePhoto").files[0];
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      user.photo = event.target.result;
+      document.getElementById("photoPreview").src = user.photo;
+      saveProfile(name);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    saveProfile(name);
+  }
+});
+
+function saveProfile(name) {
+  user.name = name;
+  users[userIndex] = user;
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("Profile updated.");
+  document.getElementById("displayName").textContent = name || "User";
+}
+
+// Account Settings
+document.getElementById("accountSettingsForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const newEmail = document.getElementById("email").value.trim().toLowerCase();
+  const newPass = document.getElementById("password").value;
+  const confirmPass = document.getElementById("confirmPassword").value;
+
+  if (newPass && newPass !== confirmPass) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  // Prevent duplicate emails
+  if (newEmail !== user.email && users.some(u => u.email === newEmail)) {
+    alert("This email is already in use.");
+    return;
+  }
+
+  // Update user data
+  user.email = newEmail;
+  if (newPass) user.password = newPass;
+
+  // Save
+  users[userIndex] = user;
+  localStorage.setItem("users", JSON.stringify(users));
+  localStorage.setItem("currentUser", newEmail);
+  alert("Account updated.");
+});
+
+// Email Preferences
+document.getElementById("emailPrefsForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  user.prefs = {
+    newsletter: document.getElementById("newsletter").checked,
+    promos: document.getElementById("promos").checked,
+    updates: document.getElementById("updates").checked
+  };
+  users[userIndex] = user;
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("Preferences saved.");
+});
+</script>
+</body>
+</html>

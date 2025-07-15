@@ -1,0 +1,44 @@
+<header>
+  <nav class="main-nav">
+    <div class="logo">
+      <a href="index.html"><img src="images/logo.png" alt="KIK's Kitchen logo" style="width: 100px; height: auto;"></a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+    </ul>
+
+    <div class="nav-actions" id="authArea">
+      <button class="login-btn" onclick="window.location.href='login.html'">LOGIN</button>
+      <a href="profile.html"><img src="images/profile_icon.png" alt="Profile icon" class="profile-icon"></a>
+    </div>
+
+    <div class="mobile-icons">
+      <a href="profile.html"><img src="images/profile_icon.png" alt="Profile icon" class="profile-icon-m"></a>
+      <button class="hamburger" onclick="openMobileMenu()">☰</button>
+    </div>
+  </nav>
+
+  <div class="sub-nav">
+    <ul>
+      <li><a href="#">Popular</a></li>
+      <li><a href="#">Ingredients</a></li>
+      <li><a href="#">Meals & Dishes</a></li>
+      <li><a href="#">Diets</a></li>
+      <li><a href="#">Occasions</a></li>
+    </ul>
+  </div>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <button class="close-mobile" onclick="closeMobileMenu()">&times;</button>
+    <ul>
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="add_edit_recipe.html">+ ADD A RECIPE</a></li>
+      <li><a href="profile.html">PROFILE</a></li>
+    </ul>
+  </div>
+</header>

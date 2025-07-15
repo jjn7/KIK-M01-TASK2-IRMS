@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>IRMS - Login / Signup</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../static/style.css" rel="stylesheet"/>
+<script defer="" src="../static/script.js"></script>
+</head>
+<body>
+<header>
+  <nav class="main-nav">
+    <div class="logo">
+      <a href="index.html"><img src="../static/images/logo.png" alt="KIK's Kitchen logo" style="width: 100px; height: auto;"></a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+    </ul>
+
+    <div class="nav-actions">
+    <div class="nav-actions" id="authArea">
+      <button class="login-btn" onclick="window.location.href='login.html'">LOGIN</button>
+    </div>
+    <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon"></a>
+    <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+    </div>
+
+    <div class="mobile-icons">
+      <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+      <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon-m"></a>
+      <button class="hamburger" onclick="openMobileMenu()">☰</button>
+    </div>
+  </nav>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <button class="close-mobile" onclick="closeMobileMenu()">&times;</button>
+    <ul>
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="add_edit_recipe.html">+ ADD A RECIPE</a></li>
+      <li><a href="profile.html">PROFILE</a></li>
+    </ul>
+  </div>
+</header>
+<main class="login-page">
+<div class="auth-box">
+  <h2 id="authTitle">Login</h2>
+  <form id="authForm" onsubmit="handleAuth(event)">
+    <div id="nameContainer" style="display: none;">
+      <label for="name">Your Name</label>
+      <input id="name" type="text"/>
+    </div>
+      <label for="email">Email</label>
+      <input id="email" required="" type="email"/>
+      <label for="password">Password</label>
+      <input id="password" required="" type="password"/>
+    <div id="confirmContainer" style="display: none;">
+      <label for="confirmPassword">Confirm Password</label>
+      <input id="confirmPassword" type="password"/>
+    </div>
+  <button id="submitBtn" type="submit">Login</button>
+  <p id="authToggleText">
+          Don't have an account? <a href="#" onclick="toggleAuthMode()">Sign up here</a>
+  </p>
+  </form>
+</div>
+<footer>
+  <div class="footer-links">
+    <ul>
+      <li><a href="#">Links</a></li>
+      <li><a href="#">Learn & Support</a></li>
+      <li><a href="#">Download the App</a></li>
+    </ul>
+  </div>
+
+  <div class="newsletter">
+    <h4>Sign up for our Newsletter</h4>
+    <input type="email" placeholder="Enter your email" />
+    <button>Subscribe</button>
+  </div>
+
+  <p class="copyright">
+    &copy; 2024 KIK's Kitchen. All rights reserved.
+  </p>
+</footer>
+</main>
+<script>
+let isLoginMode = true;
+
+function toggleAuthMode() {
+  isLoginMode = !isLoginMode;
+  document.getElementById('authTitle').textContent = isLoginMode ? 'Login' : 'Sign Up';
+  document.getElementById('submitBtn').textContent = isLoginMode ? 'Login' : 'Sign Up';
+  document.getElementById('authToggleText').innerHTML = isLoginMode
+    ? `Don't have an account? <a href="#" onclick="toggleAuthMode()">Sign up here</a>`
+    : `Already have an account? <a href="#" onclick="toggleAuthMode()">Login here</a>`;
+
+  document.getElementById('nameContainer').style.display = isLoginMode ? 'none' : 'block';
+  document.getElementById('confirmContainer').style.display = isLoginMode ? 'none' : 'block';
+}
+
+function handleAuth(event) {
+  event.preventDefault();
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const password = document.getElementById('password').value;
+  let users = JSON.parse(localStorage.getItem('users') || '[]');
+
+  if (isLoginMode) {
+    const user = users.find(u => u.email === email && u.password === password);
+    if (!user) return alert('Invalid login details');
+    localStorage.setItem('currentUser', email);
+    alert('Logged in successfully!');
+  } else {
+    const name = document.getElementById('name').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password !== confirmPassword) return alert('Passwords do not match');
+    if (users.some(u => u.email === email)) return alert('Account already exists');
+
+    users.push({
+      email,
+      password,
+      name,
+      savedRecipes: [],
+      createdRecipes: [],
+      prefs: {}
+    });
+
+    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem('currentUser', email);
+    alert('Account created!');
+  }
+
+  event.target.reset();
+  window.location.href = 'profile.html';
+}
+</script>
+</body>
+</html>

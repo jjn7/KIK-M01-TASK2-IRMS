@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>IRMS - Saved Recipes</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../static/style.css" rel="stylesheet"/>
+<script defer="" src="../static/script.js"></script>
+</head>
+<body>
+<header>
+  <nav class="main-nav">
+    <div class="logo">
+      <a href="index.html"><img src="../static/images/logo.png" alt="KIK's Kitchen logo" style="width: 100px; height: auto;"></a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+    </ul>
+
+    <div class="nav-actions">
+    <div class="nav-actions" id="authArea">
+      <button class="login-btn" onclick="window.location.href='login.html'">LOGIN</button>
+    </div>
+    <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon"></a>
+    <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+    </div>
+
+    <div class="mobile-icons">
+      <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+      <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon-m"></a>
+      <button class="hamburger" onclick="openMobileMenu()">☰</button>
+    </div>
+  </nav>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <button class="close-mobile" onclick="closeMobileMenu()">&times;</button>
+    <ul>
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="add_edit_recipe.html">+ ADD A RECIPE</a></li>
+      <li><a href="profile.html">PROFILE</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="profile-saved-page">
+<h1>Saved Recipes</h1>
+<section class="category">
+<div class="recipe-grid" id="savedRecipeGrid">
+<!-- Recipes will be injected here -->
+</div>
+</section>
+</main>
+
+<footer>
+  <div class="footer-links">
+    <ul>
+      <li><a href="#">Links</a></li>
+      <li><a href="#">Learn & Support</a></li>
+      <li><a href="#">Download the App</a></li>
+    </ul>
+  </div>
+
+  <div class="newsletter">
+    <h4>Sign up for our Newsletter</h4>
+    <input type="email" placeholder="Enter your email" />
+    <button>Subscribe</button>
+  </div>
+
+  <p class="copyright">
+    &copy; 2024 KIK's Kitchen. All rights reserved.
+  </p>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const currentUser = localStorage.getItem("currentUser");
+  const container = document.getElementById("savedRecipeGrid");
+
+  if (!currentUser) {
+    container.innerHTML = "<p>Please log in to view saved recipes.</p>";
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem("users") || "[]");
+  const user = users.find(u => u.email === currentUser);
+  if (!user || !user.savedRecipes?.length) {
+    container.innerHTML = "<p>No saved recipes found.</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+  user.savedRecipes.forEach((recipe, i) => {
+    const rating = (Math.random() * 1.5 + 3.0).toFixed(1);
+    const div = document.createElement("div");
+    div.className = "recipe-card";
+    div.innerHTML = `
+      <img src="${recipe.image || 'static/images/placeholder.jpg'}" alt="${recipe.title}">
+      <h4>${recipe.title}</h4>
+      <p>${(recipe.steps?.[0] || '').substring(0, 100)}...</p>
+      <div class="rating">★★★★☆ (${rating})</div>
+      <div class="recipe-card-cta">
+        <a href="recipe.html?view=${recipe.id || i}" class="button-sm">View</a>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+});
+</script>
+
+
+<script>
+const currentUser = localStorage.getItem("currentUser");
+const users = JSON.parse(localStorage.getItem("users") || "[]");
+const userIndex = users.findIndex(u => u.email === currentUser);
+if (!currentUser || userIndex === -1) {
+  alert("Please log in first.");
+  window.location.href = "login.html";
+}
+
+const user = users[userIndex];
+
+// Pre-fill profile details
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("authArea").innerHTML = `
+    <span>Hi, ${user.name || currentUser.split('@')[0]}</span>
+    <button onclick="logout()">Logout</button>
+  `;
+});
+
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.href = "login.html";
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>IRMS - Homepage</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../static/style.css" rel="stylesheet"/>
+<script defer="" src="../static/script.js"></script>
+</head>
+<body>
+<header>
+  <nav class="main-nav">
+    <div class="logo">
+      <a href="index.html"><img src="../static/images/logo.png" alt="KIK's Kitchen logo" style="width: 100px; height: auto;"></a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+    </ul>
+
+    <div class="nav-actions">
+    <div class="nav-actions" id="authArea">
+      <button class="login-btn" onclick="window.location.href='login.html'">LOGIN</button>
+    </div>
+    <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon"></a>
+    <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+    </div>
+
+    <div class="mobile-icons">
+      <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+      <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon-m"></a>
+      <button class="hamburger" onclick="openMobileMenu()">☰</button>
+    </div>
+  </nav>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <button class="close-mobile" onclick="closeMobileMenu()">&times;</button>
+    <ul>
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="add_edit_recipe.html">+ ADD A RECIPE</a></li>
+      <li><a href="profile.html">PROFILE</a></li>
+    </ul>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Welcome to KIK's Kitchen</h1>
+    <i style="font-size:1.8em;">Create. Taste. Inspire.</i><br/>
+    <div class="search-bar">
+    <input placeholder="Search by ingredient, recipe, or cuisine..." type="text"/>
+    <button>Search</button>
+    </div>
+  </div>
+</section>
+
+<section class="category">
+  <div class="category-title">
+    <h3>Recently Added Recipes</h3>
+    <a class="button-lg2" href="recipes.html">See all</a>
+  </div>
+  <p>Here’s what’s new in the kitchen!</p><br/>
+  <div class="recipe-grid" id="recentRecipes"></div>
+</section>
+
+<section class="category">
+  <div class="category-title">
+    <h3>Top picks this week!</h3>
+    <a class="button-lg2" href="recipes.html">View all recipes</a>
+  </div>
+  <p>Not sure what to cook? Check out these great recipes we've picked out for you</p><br/>
+  <div class="recipe-grid" id="topPicks"></div>
+</section>
+
+<h2 style="text-align: center;">Featured Sweet Inspiration</h2>
+<section class="feature-card">
+  <img alt="Classic Tiramisu" src="../static/images/1.jpg"/>
+    <div class="feature-text">
+      <h3>Classic Tiramisu</h3>
+      <p>This tiramisu recipe is rich, creamy, and custardy — made with dreamy layers of mascarpone cream, coffee-soaked lady fingers and cocoa powder, just like Italy!</p>
+      <div class="rating2">★★★★★ (4.8)</div><br/>
+      <a class="button-lg" href="recipe.html?view=0">Learn more</a>
+    </div>
+</section>
+<br>
+
+<h2 style="text-align: center;">Weekend Favourite!</h2>
+<section class="feature-card">
+  <img alt="Lemon Herb Roasted Chicken" src="../static/images/2.jpg"/>
+    <div class="feature-text">
+      <h3>Lemon Herb Roasted Chicken</h3>
+      <p>This Lemon Roasted Chicken is juicy, tender, and infused with citrus and herbs. Seasoned with lemon garlic herbed butter under the skin for extra flavour.</p>
+      <br/>
+      <a class="button-lg" href="recipe.html?view=0">Learn more</a>
+    </div>
+</section>
+
+<footer>
+  <div class="footer-links">
+    <ul>
+      <li><a href="#">Links</a></li>
+      <li><a href="#">Learn & Support</a></li>
+      <li><a href="#">Download the App</a></li>
+    </ul>
+  </div>
+
+  <div class="newsletter">
+    <h4>Sign up for our Newsletter</h4>
+    <input type="email" placeholder="Enter your email" />
+    <button>Subscribe</button>
+  </div>
+
+  <p class="copyright">
+    &copy; 2024 KIK's Kitchen. All rights reserved.
+  </p>
+</footer>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const currentUser = localStorage.getItem("currentUser");
+  const authArea = document.getElementById("authArea");
+
+  if (currentUser) {
+    const name = currentUser.split("@")[0];
+    authArea.innerHTML = `
+      <span>Hi, ${name}</span>
+      <button onclick="logout()">Logout</button>
+      <a href="profile.html"><img src="static/images/profile_icon.png" alt="Profile icon" class="profile-icon"></a>
+    `;
+  }
+
+  try {
+    const res = await fetch("/api/recipes");
+    const recipes = await res.json();
+
+    const topPicks = document.getElementById("topPicks");
+    const recent = document.getElementById("recentRecipes");
+
+    // Top 4 picks
+    topPicks.innerHTML = "";
+    recipes.slice(0, 4).forEach(recipe => {
+      topPicks.appendChild(buildCard(recipe, currentUser));
+    });
+
+    // Last 4 recipes
+    recent.innerHTML = "";
+    recipes.slice(-4).reverse().forEach(recipe => {
+      recent.appendChild(buildCard(recipe, currentUser));
+    });
+
+  } catch (err) {
+    document.getElementById("topPicks").innerHTML = "<p style='color:red'>Failed to load recipes</p>";
+    document.getElementById("recentRecipes").innerHTML = "<p style='color:red'>Failed to load recipes</p>";
+  }
+});
+
+function buildCard(recipe, currentUser) {
+  const rating = parseFloat((Math.random() * 1.5 + 3.0).toFixed(1));
+  const preview = recipe.instructions?.split("\n")[0]?.substring(0, 100) || "No description";
+
+  const div = document.createElement("div");
+  div.className = "recipe-card";
+  div.innerHTML = `
+    <img src="${recipe.image || 'static/images/placeholder.jpg'}" alt="${recipe.title}">
+    <h4>${recipe.title || 'Untitled'}</h4>
+    <div class="rating">★★★★☆ (${rating})</div><br>
+    <div class="recipe-card-cta">
+      <a href="recipe.html?view=${recipe.id}" class="button-sm">Cook now</a>
+      ${currentUser ? `<button class="button-sm3" onclick="saveToProfile(${recipe.id})">Save</button>` : ''}
+    </div>
+  `;
+  return div;
+}
+
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.reload();
+}
+
+function saveToProfile(recipeId) {
+  const currentUser = localStorage.getItem("currentUser");
+  if (!currentUser) return alert("Please log in to save recipes.");
+
+  const users = JSON.parse(localStorage.getItem("users") || "[]");
+  const userIndex = users.findIndex(u => u.email === currentUser);
+  if (userIndex === -1) return;
+
+  fetch(`/api/recipes/${recipeId}`)
+    .then(res => res.json())
+    .then(recipe => {
+      const user = users[userIndex];
+      user.savedRecipes = user.savedRecipes || [];
+      const exists = user.savedRecipes.some(r => r.id === recipeId);
+      if (exists) return alert("This recipe is already saved.");
+      user.savedRecipes.push(recipe);
+      users[userIndex] = user;
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Recipe saved to your profile!");
+    })
+    .catch(() => alert("Could not fetch recipe."));
+}
+</script>
+</body>
+</html>

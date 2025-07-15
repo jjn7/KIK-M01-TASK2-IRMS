@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>IRMS - Recipes</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../static/style.css" rel="stylesheet"/>
+<script defer="" src="../static/script.js"></script>
+</head>
+<body>
+<header>
+  <nav class="main-nav">
+    <div class="logo">
+      <a href="index.html"><img src="../static/images/logo.png" alt="KIK's Kitchen logo" style="width: 100px; height: auto;"></a>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+    </ul>
+
+    <div class="nav-actions">
+    <div class="nav-actions" id="authArea">
+      <button class="login-btn" onclick="window.location.href='login.html'">LOGIN</button>
+    </div>
+    <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon"></a>
+    <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+    </div>
+
+    <div class="mobile-icons">
+      <a href="add_edit_recipe.html" class="add-recipe">+ ADD A RECIPE</a>
+      <a href="profile.html"><img src="../static/images/profile_icon.png" alt="Profile icon" class="profile-icon-m"></a>
+      <button class="hamburger" onclick="openMobileMenu()">☰</button>
+    </div>
+  </nav>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <button class="close-mobile" onclick="closeMobileMenu()">&times;</button>
+    <ul>
+      <li><a href="recipes.html">RECIPES</a></li>
+      <li><a href="#">ARTICLES</a></li>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="add_edit_recipe.html">+ ADD A RECIPE</a></li>
+      <li><a href="profile.html">PROFILE</a></li>
+    </ul>
+  </div>
+</header>
+<main>
+
+<section class="hero">
+  <div class="hero-content">
+  <h1>Find your next recipe!</h1>
+    <div class="search-bar">
+      <input id="searchInput" placeholder="Search by ingredient, recipe, or cuisine." type="text"/>
+      <button onclick="applyFilters()">Search</button>
+    </div>
+  </div>
+</section>
+
+<div class="recipes-content">
+<section>
+<button class="toggle-filters">Show Filters</button>
+  <aside class="filters">
+  <h4>FILTER BY</h4>
+    <div class="filter-section">
+      <h4>Cuisine Types</h4>
+      <ul id="cuisineFilters">
+        <li><label><input type="checkbox" value="Italian"/> Italian</label></li>
+        <li><label><input type="checkbox" value="Mexican"/> Mexican</label></li>
+        <li><label><input type="checkbox" value="Asian"/> Asian</label></li>
+        <li><label><input type="checkbox" value="Middle Eastern"/> Middle Eastern</label></li>
+      </ul>
+    </div>
+  </aside>
+</section>
+
+<section class="recipes-grid-section">
+  <div class="category-title">
+    <h2>All Recipes</h2>
+    <div class="dropdown">
+      <select id="sortSelect" onchange="applyFilters()">
+        <option value="">Sort by</option>
+        <option value="time-asc">Time: Shortest to longest</option>
+        <option value="time-desc">Time: Longest to shortest</option>
+      </select>
+    </div>
+  </div>
+  <div class="recipe-grid" id="recipeGrid"></div>
+</section>
+</div>
+</main>
+
+<footer>
+  <div class="footer-links">
+    <ul>
+      <li><a href="#">Links</a></li>
+      <li><a href="#">Learn & Support</a></li>
+      <li><a href="#">Download the App</a></li>
+    </ul>
+  </div>
+
+  <div class="newsletter">
+    <h4>Sign up for our Newsletter</h4>
+    <input type="email" placeholder="Enter your email" />
+    <button>Subscribe</button>
+  </div>
+
+  <p class="copyright">
+    &copy; 2024 KIK's Kitchen. All rights reserved.
+  </p>
+</footer>
+<script>
+let allRecipes = [];
+
+async function fetchRecipes() {
+  const container = document.getElementById("recipeGrid");
+  try {
+    const res = await fetch("/api/recipes");
+    allRecipes = await res.json();
+    console.log("Fetched recipes:", allRecipes);
+    applyFilters();
+  } catch (err) {
+    container.innerHTML = `<p style="color:red">Failed to load recipes: ${err}</p>`;
+  }
+}
+
+function applyFilters() {
+  const container = document.getElementById("recipeGrid");
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const sort = document.getElementById("sortSelect").value;
+  const checkedCuisines = Array.from(document.querySelectorAll("#cuisineFilters input:checked")).map(cb => cb.value);
+
+  let filtered = [...allRecipes];
+
+  // Search filter
+  if (search) {
+    filtered = filtered.filter(r => r.title?.toLowerCase().includes(search) || r.instructions?.toLowerCase().includes(search));
+  }
+
+  // Basic cuisine match based on instructions content
+  if (checkedCuisines.length) {
+    filtered = filtered.filter(r => checkedCuisines.some(c => r.instructions?.toLowerCase().includes(c.toLowerCase())));
+  }
+
+  // Sorting
+  if (sort === "time-asc") {
+    filtered.sort((a, b) => a.cooking_time - b.cooking_time);
+  } else if (sort === "time-desc") {
+    filtered.sort((a, b) => b.cooking_time - a.cooking_time);
+  }
+
+  // Render
+  container.innerHTML = "";
+  if (filtered.length === 0) {
+    container.innerHTML = "<p>No matching recipes found.</p>";
+    return;
+  }
+
+  filtered.forEach(recipe => {
+    const rating = parseFloat((Math.random() * 1.5 + 3.0).toFixed(1));
+    const card = document.createElement("div");
+    card.className = "recipe-card";
+
+    const preview = recipe.instructions?.split("\n")[0]?.substring(0, 100) || "No preview available.";
+
+    card.innerHTML = `
+      <img src="${recipe.image || '../static/images/placeholder.jpg'}" alt="${recipe.title}">
+      <h4>${recipe.title || 'Untitled'}</h4>
+      <div class="rating">${'★'.repeat(Math.floor(rating)) + '☆'} (${rating})</div><br>
+      <div class="recipe-card-cta">
+        <a href="recipe.html?view=${recipe.id}" class="button-sm">View</a>
+        <a href="add_edit_recipe.html?edit=${recipe.id}" class="button-sm2">Edit</a>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+fetchRecipes();
+</script>
+<script>
+const currentUser = localStorage.getItem("currentUser");
+const users = JSON.parse(localStorage.getItem("users") || "[]");
+const userIndex = users.findIndex(u => u.email === currentUser);
+if (!currentUser || userIndex === -1) {
+  alert("Please log in first.");
+  window.location.href = "login.html";
+}
+
+const user = users[userIndex];
+
+// Pre-fill profile details
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("authArea").innerHTML = `
+    <span>Hi, ${user.name || currentUser.split('@')[0]}</span>
+    <button onclick="logout()">Logout</button>
+  `;
+});
+
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.href = "login.html";
+}
+</script>
+</body>
+</html>
