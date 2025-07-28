@@ -55,6 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("title").value = recipe.title || "";
       document.getElementById("cookingTime").value = recipe.cookingTime || "";
       document.getElementById("steps").value = recipe.steps.join("\n") || "";
+      document.getElementById("servings").value = recipe.servings || 1;
 
       const ingredientsList = document.getElementById("ingredientsList");
       ingredientsList.innerHTML = "";
@@ -78,6 +79,7 @@ async function validateRecipeForm(event) {
 
   const title = document.getElementById("title").value.trim();
   const cookingTime = parseInt(document.getElementById("cookingTime").value);
+  const servings = parseInt(document.getElementById("servings").value) || 1;
   const steps = document.getElementById("steps").value.trim().split("\n").filter(Boolean);
 
   const ingredients = [];
@@ -96,6 +98,7 @@ async function validateRecipeForm(event) {
   const recipeData = {
     title,
     cookingTime,
+    servings,
     steps,
     ingredients,
     image: imagePreview?.src || null,

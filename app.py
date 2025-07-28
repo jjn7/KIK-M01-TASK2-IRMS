@@ -13,12 +13,17 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT,
             cookingTime INTEGER,
+            servings INTEGER,
             ingredients TEXT,
             steps TEXT,
             image TEXT,
             createdAt TEXT
         )
     ''')
+    try:
+        c.execute("ALTER TABLE recipes ADD COLUMN servings INTEGER DEFAULT 1")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     conn.commit()
     conn.close()
 
@@ -26,7 +31,10 @@ def init_db():
 def get_all_recipes():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT * FROM recipes")
+    c.execute("""
+        SELECT id, title, cookingTime, servings, ingredients, steps, image, createdAt
+        FROM recipes
+    """)
     rows = c.fetchall()
     conn.close()
     recipes = [
@@ -34,10 +42,11 @@ def get_all_recipes():
             "id": row[0],
             "title": row[1],
             "cookingTime": row[2],
-            "ingredients": eval(row[3]),
-            "steps": eval(row[4]),
-            "image": row[5],
-            "createdAt": row[6]
+            "servings": row[3] or 1,
+            "ingredients": eval(row[4]),
+            "steps": eval(row[5]),
+            "image": row[6],
+            "createdAt": row[7]
         }
         for row in rows
     ]
@@ -49,11 +58,12 @@ def add_recipe():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
-        INSERT INTO recipes (title, cookingTime, ingredients, steps, image, createdAt)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO recipes (title, cookingTime, servings, ingredients, steps, image, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (
         data.get("title"),
         data.get("cookingTime"),
+        data.get("servings", 1),
         str(data.get("ingredients")),
         str(data.get("steps")),
         data.get("image"),
@@ -63,26 +73,19 @@ def add_recipe():
     conn.close()
     return jsonify({"message": "Recipe added"}), 201
 
-@app.route("/api/recipes/<int:recipe_id>", methods=["DELETE"])
-def delete_recipe(recipe_id):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("DELETE FROM recipes WHERE id=?", (recipe_id,))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Deleted"}), 200
-
 @app.route("/api/recipes/<int:recipe_id>", methods=["PUT"])
 def update_recipe(recipe_id):
     data = request.get_json()
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
-        UPDATE recipes SET title=?, cookingTime=?, ingredients=?, steps=?, image=?, createdAt=?
+        UPDATE recipes
+        SET title=?, cookingTime=?, servings=?, ingredients=?, steps=?, image=?, createdAt=?
         WHERE id=?
     """, (
         data.get("title"),
         data.get("cookingTime"),
+        data.get("servings", 1),
         str(data.get("ingredients")),
         str(data.get("steps")),
         data.get("image"),
@@ -93,11 +96,23 @@ def update_recipe(recipe_id):
     conn.close()
     return jsonify({"message": "Recipe updated"})
 
+@app.route("/api/recipes/<int:recipe_id>", methods=["DELETE"])
+def delete_recipe(recipe_id):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM recipes WHERE id=?", (recipe_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Deleted"}), 200
+
 @app.route("/api/recipes/<int:recipe_id>", methods=["GET"])
 def get_recipe(recipe_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT * FROM recipes WHERE id=?", (recipe_id,))
+    c.execute("""
+        SELECT id, title, cookingTime, servings, ingredients, steps, image, createdAt
+        FROM recipes WHERE id=?
+    """, (recipe_id,))
     row = c.fetchone()
     conn.close()
     if row:
@@ -105,10 +120,11 @@ def get_recipe(recipe_id):
             "id": row[0],
             "title": row[1],
             "cookingTime": row[2],
-            "ingredients": eval(row[3]),
-            "steps": eval(row[4]),
-            "image": row[5],
-            "createdAt": row[6]
+            "servings": row[3] or 1,
+            "ingredients": eval(row[4]),
+            "steps": eval(row[5]),
+            "image": row[6],
+            "createdAt": row[7]
         }
         return jsonify(recipe)
     return jsonify({"error": "Recipe not found"}), 404
